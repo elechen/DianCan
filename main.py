@@ -1,10 +1,14 @@
 #coding utf-8
 
 from flask import Flask, session, request, redirect, url_for, \
-	render_template, make_response, flash
+	render_template, make_response, flash, g
+
+from init_db import init_db, connect_db
 
 app = Flask('DianCan')
-app.secret_key = "YL_DIANCAN_20160326_SECRET_KEY"
+app.secret_key = 'YL_DIANCAN_20160326_SECRET_KEY'
+DATABASE = 'diancan.db'
+app.config.from_object(__name__)
 
 @app.route('/')
 def index():
@@ -23,7 +27,11 @@ def check_auto_login():
 		session['username'] = username
 
 def is_valid_user(name, pwd):
-	return True
+	sql = "select * from users where name=\'%s\' and pwd=\'%s\'" % (name, pwd)
+	db = connect_db(app.config["DATABASE"])
+	result = db.execute(sql)
+	for row in result:
+		return True
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -61,6 +69,17 @@ def home():
 	else:
 		return redirect(url_for('login'))
 
+
+@app.before_request
+def before_request():
+	g.db = init_db(app, app.config['DATABASE'])
+
+@app.teardown_request
+def teardown_request(exception):
+	db = getattr(g, 'db', None)
+	if db is not None:
+		db.close()
+
 if __name__ == '__main__':
-	app.run(host='127.0.0.1', debug=False)
+	app.run(debug=True, use_reloader=False)
 

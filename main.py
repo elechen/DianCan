@@ -1,4 +1,6 @@
-#coding utf-8
+#coding=utf-8
+
+import md5
 
 from flask import Flask, session, request, redirect, url_for, \
 	render_template, make_response, flash, g
@@ -21,7 +23,6 @@ def index():
 def check_auto_login():
 	username = request.cookies.get('username')
 	password = request.cookies.get('password')
-	print(username, password, "auto_login")
 	if username and password and is_valid_user(username, password):
 		session['logged_in'] = True
 		session['username'] = username
@@ -31,7 +32,18 @@ def is_valid_user(name, pwd):
 	db = connect_db(app.config["DATABASE"])
 	result = db.execute(sql)
 	for row in result:
+		db.close()
 		return True
+	db.close()
+
+def is_existed_user(name):
+	sql = "select * from users where name=\'%s\'" % (name)
+	db = connect_db(app.config["DATABASE"])
+	result = db.execute(sql)
+	for row in result:
+		db.close()
+		return True
+	db.close()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -40,6 +52,7 @@ def login():
 		return redirect(url_for('home'))
 	if request.method == 'POST':
 		username, password = request.form['username'], request.form['password']
+		password = md5.md5(password).hexdigest()
 		if is_valid_user(username, password):
 			resp = make_response(redirect(url_for('index')))
 			resp.set_cookie('username', username, max_age=365*24*60*60)
@@ -65,20 +78,29 @@ def logout():
 @app.route('/home')
 def home():
 	if session.get('logged_in'):
-		return '你好, %s' % (session['username'])
+		return 'Hello, %s' % (session['username'])
 	else:
 		return redirect(url_for('login'))
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+	if request.method == 'POST':
+		username, password = request.form['username'], request.form['password']
+		password = md5.md5(password).hexdigest()
+		if is_existed_user(username):
+			flash('Registered. Please login')
+			return redirect(url_for('login'))
+		else:
+			db = connect_db(app.config['DATABASE'])
+			sql = "insert into users (name, pwd, priority) values (\'%s\', \'%s\', \'0\')" % (username, password)
+			result = db.execute(sql)
+			db.commit()
+			db.close()
+			flash('Register Successfully. Please login')
+			return redirect(url_for('login'))
+	else:
+		return render_template('register.html')
 
-@app.before_request
-def before_request():
-	g.db = init_db(app, app.config['DATABASE'])
-
-@app.teardown_request
-def teardown_request(exception):
-	db = getattr(g, 'db', None)
-	if db is not None:
-		db.close()
 
 if __name__ == '__main__':
 	app.run(debug=True, use_reloader=False)

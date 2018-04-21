@@ -48,7 +48,7 @@ m.orders = function (req, cb) {
         for(k in replies){
             var order = JSON.parse(replies[k]);
             var date = new Date(order.mealID);
-            console.log("mealID", order.mealID, date.toLocaleString());
+            // console.log("mealID", order.mealID, date.toLocaleString());
             if ((date >= fromDate) && (date <= toDate))
             {
                 orders[k] = order;

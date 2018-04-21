@@ -1,5 +1,5 @@
 const url = require('url');
-const api = require("./api");
+const api = require("./api/api");
 
 function route(request, cb) {
   var pathname = url.parse(request.url).pathname;

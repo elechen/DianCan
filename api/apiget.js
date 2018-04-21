@@ -1,6 +1,6 @@
 const url = require("url");
 
-const db = require("./db");
+const db = require("../db");
 
 var m = {};
 
@@ -17,8 +17,6 @@ function handle(req, cb) {
 
 m.menus = function (req, cb) {
     var callback = function (err, replies) {
-        console.log(err);
-        console.log(replies);
         for(var key in replies)
         {
             replies[key] = JSON.parse(replies[key])
@@ -32,10 +30,7 @@ m.order = function (req, cb) {
     var params = url.parse(req.url, true).query;
     var pid = "order_" + params.pid;
     var mealID = params.mealID;
-    console.log("get order", params);
     var callback = function (err, replies) {
-        console.log(err);
-        console.log(replies);
         cb(replies);
     }
     return db.hget(pid, mealID, callback);
@@ -44,15 +39,22 @@ m.order = function (req, cb) {
 m.orders = function (req, cb) {
     var params = url.parse(req.url, true).query;
     var pid = "order_" + params.pid;
-    var fromDate = params.fromDate;
-    var toDate = params.toDate;
+    var fromDate = new Date(parseInt(params.fromDate));
+    var toDate = new Date(parseInt(params.toDate));
+    console.log("fromDate",  fromDate.toLocaleString());
+    console.log("toDate", toDate.toLocaleString());
     var callback = function (err, replies) {
-        console.log(err);
-        console.log(typeof(replies));
+        var orders = {};
         for(k in replies){
-            replies[k] = JSON.parse(replies[k]);
+            var order = JSON.parse(replies[k]);
+            var date = new Date(order.mealID);
+            console.log("mealID", order.mealID, date.toLocaleString());
+            if ((date >= fromDate) && (date <= toDate))
+            {
+                orders[k] = order;
+            }
         }
-        cb(JSON.stringify(replies));
+        cb(JSON.stringify(orders));
     }
     return db.hgetall(pid, callback);
 }

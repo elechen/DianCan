@@ -1,6 +1,6 @@
 const url = require("url");
 
-const db = require("./db");
+const db = require("../db");
 
 var m = {};
 
@@ -22,13 +22,9 @@ m.order = function (req, cb) {
     })
         .addListener('end', function () {
             var params = JSON.parse(info);
-            console.log(info)
             var pid = "order_" + params.pid;
             var mealID = params.mealID;
-            console.log("delet order", params);
             var callback = function (err, replies) {
-                console.log(err);
-                console.log(replies);
                 var msg;
                 if (replies == 1) {
                     msg = { msg: "delete success" };

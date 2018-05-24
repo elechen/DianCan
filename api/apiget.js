@@ -17,46 +17,106 @@ function handle(req, cb) {
 
 m.menus = function (req, cb) {
     var callback = function (err, replies) {
-        for(var key in replies)
-        {
-            replies[key] = JSON.parse(replies[key])
+        var data;
+        if (err) {
+            data = {
+                code: "FAIL",
+                data: err
+            };
+            cb(JSON.stringify(data));
+        } else {
+            for (var key in replies) {
+                replies[key] = JSON.parse(replies[key]);
+            }
+            data = {
+                code: "SUCCESS",
+                data: replies
+            };
+            cb(JSON.stringify(data));
         }
-        cb(JSON.stringify(replies));
     };
     db.hgetall("menus", callback);
 }
 
+m.humans = function (req, cb) {
+    var callback = function (err, replies) {
+        var data;
+        if (err) {
+            data = {
+                code: "FAIL",
+                data: err
+            };
+            cb(JSON.stringify(data));
+        } else {
+            for (var key in replies) {
+                replies[key] = JSON.parse(replies[key]);
+            }
+            data = {
+                code: "SUCCESS",
+                data: replies
+            };
+            cb(JSON.stringify(data));
+        }
+    };
+    db.hgetall("humans", callback);
+};
+
 m.order = function (req, cb) {
     var params = url.parse(req.url, true).query;
-    var pid = "order_" + params.pid;
-    var mealID = params.mealID;
+    var account = "order_" + params.account;
+    var mealid = params.mealid;
+    console.log(account, mealid);
     var callback = function (err, replies) {
-        cb(replies);
-    }
-    return db.hget(pid, mealID, callback);
-}
+        var data;
+        console.log(err, replies);
+        if (err) {
+            data = {
+                code: "FAIL",
+                data: err
+            };
+        } else {
+            data = {
+                code: "SUCCESS",
+                data: replies
+            };
+        }
+        cb(JSON.stringify(data));
+    };
+    return db.hget(account, mealid, callback);
+};
 
 m.orders = function (req, cb) {
     var params = url.parse(req.url, true).query;
-    var pid = "order_" + params.pid;
+    var account = "order_" + params.account;
     var fromDate = new Date(parseInt(params.fromDate));
     var toDate = new Date(parseInt(params.toDate));
-    console.log("fromDate",  fromDate.toLocaleString());
+    console.log("fromDate", fromDate.toLocaleString());
     console.log("toDate", toDate.toLocaleString());
     var callback = function (err, replies) {
-        var orders = {};
-        for(k in replies){
-            var order = JSON.parse(replies[k]);
-            var date = new Date(order.mealID);
-            // console.log("mealID", order.mealID, date.toLocaleString());
-            if ((date >= fromDate) && (date <= toDate))
-            {
-                orders[k] = order;
+        var data;
+        if (err) {
+            data = {
+                code: "FAIL",
+                data: err
+            };
+        } else {
+            var orders = {};
+            for (var key in replies) {
+                var order = JSON.parse(replies[key]);
+                var date = new Date(order.mealid);
+                // console.log("mealid", order.mealid, date.toLocaleString());
+                if ((date >= fromDate) && (date <= toDate)) {
+                    orders[key] = order;
+                }
             }
+            data = {
+                code: "SUCCESS",
+                data: orders
+            };
         }
-        cb(JSON.stringify(orders));
-    }
-    return db.hgetall(pid, callback);
-}
+        cb(JSON.stringify(data));
+    };
+    return db.hgetall(account, callback);
+};
 
 exports.handle = handle;

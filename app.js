@@ -5,6 +5,9 @@ const hostname = '127.0.0.1';
 const port = 3333;
 
 function onRequest(request, response) {
+  response.setHeader('Access-Control-Allow-Origin', '*');
+  response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
   response.writeHead(200, {"Content-Type": "application/json"});
   var cb = function(sJson)
   {

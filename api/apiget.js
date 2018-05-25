@@ -77,7 +77,7 @@ m.order = function (req, cb) {
         } else {
             data = {
                 code: "SUCCESS",
-                data: replies
+                data: JSON.parse(replies)
             };
         }
         cb(JSON.stringify(data));
@@ -88,8 +88,9 @@ m.order = function (req, cb) {
 m.orders = function (req, cb) {
     var params = url.parse(req.url, true).query;
     var account = "order_" + params.account;
-    var fromDate = new Date(parseInt(params.fromDate));
-    var toDate = new Date(parseInt(params.toDate));
+    var fromDate = new Date(params.fromDate);
+    var toDate = new Date(params.toDate);
+    console.log("account", account);
     console.log("fromDate", fromDate.toLocaleString());
     console.log("toDate", toDate.toLocaleString());
     var callback = function (err, replies) {

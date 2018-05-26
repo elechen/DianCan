@@ -1,7 +1,7 @@
 const http = require('http');
 const router = require("./router");
 
-const hostname = '127.0.0.1';
+const hostname = '0.0.0.0';
 const port = 3333;
 
 function onRequest(request, response) {

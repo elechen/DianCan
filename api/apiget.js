@@ -120,4 +120,47 @@ m.orders = function (req, cb) {
     return db.hgetall(account, callback);
 };
 
+m.sumorders = function (req, cb) {
+    var params = url.parse(req.url, true).query;
+    var fromDate = new Date(params.fromDate);
+    var toDate = new Date(params.toDate);
+    console.log("fromDate", fromDate.toLocaleString());
+    console.log("toDate", toDate.toLocaleString());
+    var callback = function (err, replies) {
+        var accountOrders = {};
+        var getCnt = 0;
+        for (var key in replies) {
+            var one = JSON.parse(replies[key]);
+            var account = "order_" + one.account;
+            accountOrders[one.account] = {};
+            var cb2 = function (err1, replies1) {
+                var orders = {};
+                var tmpKey = null;
+                for (var key1 in replies1) {
+                    var order = JSON.parse(replies1[key1]);
+                    var date = new Date(order.mealid);
+                    if ((date >= fromDate) && (date <= toDate)) {
+                        orders[key1] = order;
+                        tmpKey = key1;
+                    }
+                }
+                if (tmpKey) {
+                    accountOrders[orders[tmpKey].account] = orders;
+                }
+                getCnt = getCnt - 1;
+                if (getCnt === 0) {
+                    var data = {
+                        code: "SUCCESS",
+                        data: accountOrders
+                    };
+                    cb(JSON.stringify(data));
+                }
+            }
+            getCnt = getCnt + 1;
+            db.hgetall(account, cb2);
+        }
+    };
+    return db.hgetall("humans", callback);
+};
+
 exports.handle = handle;
